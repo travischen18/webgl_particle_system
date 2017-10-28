@@ -1,7 +1,9 @@
 var GRAVITY = -20;
+var ROUGHNESS = 0.5;
+var NUM_PARTICLES = 150;
 
 class Emitter {
-	constructor(size, position, power = 10, jitter = 0) {
+	constructor(size, position, power = 12, jitter = 0) {
 		this.geometry = new THREE.CircleGeometry(size, 12);
 		this.material = new THREE.LineBasicMaterial({color: 0x081e47});
 		this.mesh = new THREE.Mesh(this.geometry, this.material);
@@ -58,7 +60,7 @@ class Emitter {
 
 class Particle {
 	constructor(emitter) {
-		this.geometry = new THREE.SphereGeometry(0.5,8,8);
+		this.geometry = new THREE.SphereGeometry(0.3,8,8);
 		this.material = new THREE.MeshLambertMaterial({color: 0xfcf3d1});
 		this.mesh = new THREE.Mesh(this.geometry, this.material);
 
@@ -107,8 +109,14 @@ class Particle {
 			t_vec.sub(v_n);
 			t_vec.multiplyScalar(a);
 
+			var rand = Math.random() * Collider.getRoughness();
+			t_vec.addScalar(rand);
+
 			var n_vec = v_n.clone();
 			n_vec.multiplyScalar(k);
+
+			var rand = Math.random() * Collider.getRoughness();
+			n_vec.addScalar(rand);
 
 			this.velocity.subVectors(t_vec, n_vec);
 
@@ -184,6 +192,11 @@ class PlaneCollider {
 
 		this.mesh.position.copy(position);
 		this.mesh.rotateX(-1.57);
+		this.roughness = 1;
+	}
+
+	getRoughness() {
+		return this.roughness;
 	}
 
 	getPosition() {
@@ -262,14 +275,39 @@ scene.add(emitter.mesh);
 /* ACTUAL ANIMATION OF SIMULATION */
 /////////////////////////////////////////////////////////////
 
+var SIM_ON = false;
 var particles = [];
+
+$(document).ready(function(){
+    $("#pause_button").click(function(){
+        SIM_ON = false;  
+        particles = [];   
+    });
+
+    $("#reset_button").click(function(){
+        SIM_ON = false;
+        for (var i = 0; i < particles.length; i++) {
+			scene.remove(particles[i]);
+		}
+
+		particles = [];
+        renderer.render(scene, camera);      
+    });
+
+    $("#start_button").click(function(){
+        SIM_ON = true;   
+    });
+
+});
 
 var intervalID = window.setInterval(addParticle, 500);
 
 function addParticle() {
-	if (particles.length < 10) {
-		particles.push(new Particle(emitter));
-		scene.add(particles[particles.length - 1].mesh);
+	if (SIM_ON) {
+		if (particles.length < NUM_PARTICLES) {
+			particles.push(new Particle(emitter));
+			scene.add(particles[particles.length - 1].mesh);
+		}
 	}
 }
 

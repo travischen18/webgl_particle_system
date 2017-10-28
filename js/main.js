@@ -229,7 +229,7 @@ var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHei
 var renderer = new THREE.WebGLRenderer();
 renderer.setClearColor(0x589b84);
 
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(window.innerWidth, window.innerHeight*.8);
 document.body.appendChild(renderer.domElement);
 
 controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -281,13 +281,12 @@ var particles = [];
 $(document).ready(function(){
     $("#pause_button").click(function(){
         SIM_ON = false;  
-        particles = [];   
     });
 
     $("#reset_button").click(function(){
         SIM_ON = false;
         for (var i = 0; i < particles.length; i++) {
-			scene.remove(particles[i]);
+			scene.remove(particles[i].mesh);
 		}
 
 		particles = [];
@@ -316,9 +315,11 @@ function animate() {
 
 	controls.update();
 
-	for (var i = 0; i < particles.length; i++) {
-		particles[i].updateVelocity(plane);
-		particles[i].updatePosition();
+	if (SIM_ON) {
+		for (var i = 0; i < particles.length; i++) {
+			particles[i].updateVelocity(plane);
+			particles[i].updatePosition();
+		}
 	}
 
 	renderer.render(scene, camera);

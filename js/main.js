@@ -1,7 +1,7 @@
 var GRAVITY = -20;
 
 class Emitter {
-	constructor(size, position) {
+	constructor(size, position, power = 10, jitter = 0) {
 		this.geometry = new THREE.CircleGeometry(size, 12);
 		this.material = new THREE.LineBasicMaterial({color: 0x081e47});
 		this.mesh = new THREE.Mesh(this.geometry, this.material);
@@ -12,7 +12,12 @@ class Emitter {
 		this.normalLine = null;
 		this.updateNormalLine();
 
-		this.power = 10;
+		this.power = power;
+		this.jitter = jitter;
+	}
+
+	getJitter() {
+		return this.jitter;
 	}
 
 	updateNormalLine() {
@@ -62,6 +67,16 @@ class Particle {
 		this.mesh.position.copy(emitter.mesh.position);
 		this.velocity = emitter.normal.clone();
 		this.velocity.multiplyScalar(emitter.power);
+
+		var rand_jitter = (Math.random() * 2 - 1) * emitter.getJitter();
+		this.velocity.setX(this.velocity.x + rand_jitter);
+
+		var rand_jitter = (Math.random() * 2 - 1) * emitter.getJitter();
+		this.velocity.setY(this.velocity.y + rand_jitter);
+
+		var rand_jitter = (Math.random() * 2 - 1) * emitter.getJitter();
+		this.velocity.setZ(this.velocity.z + rand_jitter);
+
 		this.mass = 1;
 	}
 
@@ -187,7 +202,7 @@ class PlaneCollider {
 		return this.geometry.parameters["width"];
 	}
 
-	rotate() {
+	rotateX() {
 	}
 }
 
@@ -236,6 +251,10 @@ var plane = new PlaneCollider(20, 30);
 plane.setPosition(0, -5, 0);
 scene.add(plane.mesh);
 
+/////////////////////////////////////////////////////////////
+/* SETUP EMITTERS */
+/////////////////////////////////////////////////////////////
+
 var emitter = new Emitter(3, new THREE.Vector3(0, 10, -10));
 scene.add(emitter.mesh);
 
@@ -248,7 +267,7 @@ var particles = [];
 var intervalID = window.setInterval(addParticle, 500);
 
 function addParticle() {
-	if (particles.length < 1) {
+	if (particles.length < 10) {
 		particles.push(new Particle(emitter));
 		scene.add(particles[particles.length - 1].mesh);
 	}
